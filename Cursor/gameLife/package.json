@@ -1,0 +1,22 @@
+{
+  "name": "juego-vida-conway",
+  "version": "1.0.0",
+  "description": "Implementación del Juego de la Vida de Conway con HTML, CSS y JavaScript puro.",
+  "scripts": {
+    "start": "npx live-server --port=3000"
+  },
+  "keywords": [
+    "conway",
+    "game-of-life",
+    "javascript",
+    "html",
+    "canvas",
+    "grid"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
+

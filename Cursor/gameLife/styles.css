@@ -1,0 +1,207 @@
+/* 
+  Estilos principales para el Juego de la Vida
+  Buscamos una apariencia limpia y moderna.
+*/
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #1f2933, #0b1016 55%, #050608);
+  color: #f9fafb;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 1100px;
+  padding: 24px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.2rem;
+}
+
+.subtitle {
+  margin-top: 8px;
+  color: #9ca3af;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.55);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+  box-shadow: none;
+}
+
+#pause-btn {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.45);
+}
+
+#reset-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.45);
+}
+
+.speed-label {
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+#speed-display {
+  font-weight: 600;
+  color: #a5b4fc;
+}
+
+#speed-range {
+  flex: 1;
+  min-width: 140px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: #1f2937;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+  cursor: pointer;
+}
+
+.grid-container {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.grid {
+  /* El tamaño de la cuadrícula se adapta al ancho disponible */
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #020617;
+  border: 1px solid #111827;
+}
+
+.cell {
+  /* Cada celda se representa como un pequeño cuadrado */
+  width: 100%;
+  height: 100%;
+  background: #020617;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  cursor: pointer;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.cell.alive {
+  /* Color para celdas vivas */
+  background: radial-gradient(circle at 30% 20%, #bbf7d0, #22c55e 45%, #166534);
+  box-shadow: inset 0 0 6px rgba(15, 118, 110, 0.7);
+}
+
+.cell:hover {
+  box-shadow: inset 0 0 6px rgba(148, 163, 184, 0.65);
+}
+
+.info {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 12px;
+  color: #e5e7eb;
+  font-size: 0.95rem;
+}
+
+.info h2 {
+  margin-top: 0;
+}
+
+.info ul {
+  margin: 8px 0 8px 20px;
+}
+
+@media (max-width: 600px) {
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game of Life — Conway</title>
+
+  <!-- Google Fonts: display + mono pairing -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM — Variables globales
+       ============================================================ */
+    :root {
+      --bg:        #050a0e;
+      --surface:   #0b1520;
+      --border:    #1a3040;
+      --alive:     #00ffcc;
+      --alive-dim: #007755;
+      --dead:      #0b1520;
+      --accent:    #ff4c6a;
+      --text:      #c8e8f0;
+      --muted:     #4a7080;
+      --cell-size: 14px;
+      --gap:       1px;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       SCANLINE OVERLAY — textura retro CRT
+       ============================================================ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,255,204,0.015) 2px,
+        rgba(0,255,204,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* ============================================================
+       HEADER
+       ============================================================ */
+    header {
+      width: 100%;
+      padding: 24px 40px 16px;
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: 0.12em;
+      color: var(--alive);
+      text-shadow: 0 0 30px rgba(0,255,204,0.4);
+      line-height: 1;
+    }
+
+    header .subtitle {
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* ============================================================
+       MAIN LAYOUT
+       ============================================================ */
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 20px 40px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* ============================================================
+       STATS BAR
+       ============================================================ */
+    .stats {
+      display: flex;
+      gap: 32px;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .stats span { color: var(--alive); }
+
+    /* ============================================================
+       CANVAS WRAPPER — glow border
+       ============================================================ */
+    .canvas-wrap {
+      position: relative;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 0 0 1px rgba(0,255,204,0.08),
+        0 0 40px rgba(0,255,204,0.06),
+        inset 0 0 60px rgba(0,0,0,0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: crosshair;
+      line-height: 0; /* evita espacio extra bajo el canvas */
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* ============================================================
+       CONTROLS
+       ============================================================ */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Botón base */
+    button {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      border-color: var(--alive);
+      color: var(--alive);
+      box-shadow: 0 0 12px rgba(0,255,204,0.25);
+    }
+
+    button:active { transform: scale(0.97); }
+
+    /* Botón primario */
+    button.primary {
+      background: var(--alive);
+      color: #000;
+      border-color: var(--alive);
+      font-weight: 700;
+      box-shadow: 0 0 20px rgba(0,255,204,0.3);
+    }
+
+    button.primary:hover {
+      box-shadow: 0 0 30px rgba(0,255,204,0.55);
+      color: #000;
+    }
+
+    /* Botón peligroso */
+    button.danger:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(255,76,106,0.3);
+    }
+
+    /* Separador visual */
+    .sep {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    /* ============================================================
+       SPEED CONTROL
+       ============================================================ */
+    .speed-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 110px;
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--alive);
+      box-shadow: 0 0 8px rgba(0,255,204,0.6);
+    }
+
+    /* ============================================================
+       PATTERN PICKER
+       ============================================================ */
+    .pattern-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pattern-row label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .pattern-btn {
+      font-size: 0.65rem;
+      padding: 6px 14px;
+      border-color: #1a3040;
+      color: var(--muted);
+    }
+
+    .pattern-btn:hover {
+      border-color: var(--alive-dim);
+      color: var(--alive);
+    }
+
+    /* ============================================================
+       INSTRUCCIONES
+       ============================================================ */
+    .hint {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .hint b { color: var(--alive); }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <div>
+    <div class="subtitle">John Horton Conway · 1970</div>
+    <h1>Game&nbsp;of&nbsp;Life</h1>
+  </div>
+</header>
+
+<!-- ============================================================
+     MAIN
+     ============================================================ -->
+<main>
+
+  <!-- Estadísticas -->
+  <div class="stats">
+    GEN: <span id="gen">0</span>
+    &nbsp;|&nbsp;
+    VIVAS: <span id="alive-count">0</span>
+    &nbsp;|&nbsp;
+    FPS: <span id="fps-display">—</span>
+  </div>
+
+  <!-- Grid canvas -->
+  <div class="canvas-wrap" id="canvas-wrap">
+    <canvas id="grid"></canvas>
+  </div>
+
+  <!-- Controles principales -->
+  <div class="controls">
+    <button class="primary" id="btn-play">▶ INICIAR</button>
+    <button id="btn-step">PASO</button>
+    <div class="sep"></div>
+    <button class="danger" id="btn-reset">REINICIAR</button>
+    <button id="btn-random">ALEATORIO</button>
+    <div class="sep"></div>
+    <div class="speed-wrap">
+      LENTO
+      <input type="range" id="speed" min="1" max="30" value="10"/>
+      RÁPIDO
+    </div>
+  </div>
+
+  <!-- Patrones predefinidos -->
+  <div class="pattern-row">
+    <label>Patrones:</label>
+    <button class="pattern-btn" data-pattern="glider">Glider</button>
+    <button class="pattern-btn" data-pattern="blinker">Blinker</button>
+    <button class="pattern-btn" data-pattern="pulsar">Pulsar</button>
+    <button class="pattern-btn" data-pattern="gosper">Gosper Gun</button>
+    <button class="pattern-btn" data-pattern="rle">R-Pentomino</button>
+  </div>
+
+  <!-- Ayuda -->
+  <p class="hint">
+    <b>Clic</b> para activar/desactivar células ·
+    <b>Arrastrar</b> para pintar · Los patrones se insertan en el centro
+  </p>
+
+</main>
+
+<!-- ============================================================
+     JAVASCRIPT — Lógica del Juego de la Vida
+     ============================================================ -->
+<script>
+/* ----------------------------------------------------------------
+   CONFIGURACIÓN
+   ---------------------------------------------------------------- */
+const CELL   = 14;   // tamaño de cada célula en px (incluyendo gap)
+const GAP    = 1;    // brecha entre células
+const CSIZE  = CELL; // alias
+
+/* ----------------------------------------------------------------
+   CANVAS & CONTEXTO
+   ---------------------------------------------------------------- */
+const canvas = document.getElementById('grid');
+const ctx    = canvas.getContext('2d');
+const wrap   = document.getElementById('canvas-wrap');
+
+// Calculamos cuántas columnas y filas caben en la ventana
+let COLS, ROWS;
+
+function computeGrid() {
+  // Usamos el 90% del ancho disponible, máximo 1060px
+  const maxW = Math.min(window.innerWidth - 40, 1060);
+  const maxH = Math.min(window.innerHeight - 300, 640);
+  COLS = Math.floor(maxW / CSIZE);
+  ROWS = Math.floor(maxH / CSIZE);
+  canvas.width  = COLS * CSIZE;
+  canvas.height = ROWS * CSIZE;
+}
+
+/* ----------------------------------------------------------------
+   ESTADO DEL JUEGO
+   ---------------------------------------------------------------- */
+let grid      = [];   // array 1D [ROWS * COLS] — 0 = muerta, 1 = viva
+let nextGrid  = [];
+let running   = false;
+let generation = 0;
+let animId    = null;
+
+// Para medir FPS
+let lastTime  = 0;
+let fpsFilter = 0;
+
+// Velocidad (frames de animación a saltar)
+let speed = 10; // FPS objetivo
+
+// Para arrastrar el ratón pintando
+let isPainting   = false;
+let paintValue   = 1; // valor que pintamos (1=vivo, 0=muerto)
+
+/* ----------------------------------------------------------------
+   INICIALIZACIÓN DE GRIDS
+   ---------------------------------------------------------------- */
+function initGrid() {
+  grid     = new Uint8Array(ROWS * COLS); // todos a 0
+  nextGrid = new Uint8Array(ROWS * COLS);
+}
+
+function idx(r, c) {
+  // Toroidal: los bordes se conectan
+  return ((r + ROWS) % ROWS) * COLS + ((c + COLS) % COLS);
+}
+
+/* ----------------------------------------------------------------
+   REGLAS DEL JUEGO DE LA VIDA
+   ---------------------------------------------------------------- */
+function step() {
+  // Para cada célula, contamos vecinos vivos y aplicamos reglas
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const neighbors =
+        grid[idx(r-1,c-1)] + grid[idx(r-1,c)] + grid[idx(r-1,c+1)] +
+        grid[idx(r,  c-1)] +                     grid[idx(r,  c+1)] +
+        grid[idx(r+1,c-1)] + grid[idx(r+1,c)] + grid[idx(r+1,c+1)];
+
+      const alive = grid[idx(r,c)];
+
+      if (alive) {
+        // Una célula VIVA sobrevive con 2 o 3 vecinos
+        nextGrid[idx(r,c)] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
+      } else {
+        // Una célula MUERTA revive con exactamente 3 vecinos
+        nextGrid[idx(r,c)] = (neighbors === 3) ? 1 : 0;
+      }
+    }
+  }
+
+  // Intercambiamos buffers
+  const temp = grid;
+  grid = nextGrid;
+  nextGrid = temp;
+
+  generation++;
+}
+
+/* ----------------------------------------------------------------
+   RENDERIZADO
+   ---------------------------------------------------------------- */
+// Paleta de colores para las células vivas (degradado de brillo)
+const COLOR_ALIVE = '#00ffcc';
+const COLOR_DEAD  = '#0b1520';
+const COLOR_GRID  = '#0d1e2a'; // líneas de cuadrícula
+
+function draw() {
+  // Fondo
+  ctx.fillStyle = COLOR_DEAD;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Células
+  let aliveCount = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[idx(r,c)]) {
+        aliveCount++;
+        ctx.fillStyle = COLOR_ALIVE;
+        ctx.fillRect(c * CSIZE + GAP, r * CSIZE + GAP, CSIZE - GAP, CSIZE - GAP);
+      } else {
+        ctx.fillStyle = COLOR_GRID;
+        ctx.fillRect(c * CSIZE + GAP, r * CSIZE + GAP, CSIZE - GAP, CSIZE - GAP);
+      }
+    }
+  }
+
+  // Actualizar estadísticas
+  document.getElementById('gen').textContent          = generation;
+  document.getElementById('alive-count').textContent  = aliveCount;
+}
+
+/* ----------------------------------------------------------------
+   BUCLE DE ANIMACIÓN
+   ---------------------------------------------------------------- */
+let frameCount    = 0;
+let fpsLastUpdate = 0;
+
+function loop(timestamp) {
+  if (!running) return;
+
+  // Limitar FPS según velocidad seleccionada
+  const interval = 1000 / speed;
+  const delta    = timestamp - lastTime;
+
+  if (delta >= interval) {
+    lastTime = timestamp - (delta % interval);
+    step();
+    draw();
+
+    // Calcular FPS real
+    frameCount++;
+    if (timestamp - fpsLastUpdate > 500) {
+      const fps = (frameCount * 1000 / (timestamp - fpsLastUpdate)).toFixed(1);
+      document.getElementById('fps-display').textContent = fps;
+      frameCount = 0;
+      fpsLastUpdate = timestamp;
+    }
+  }
+
+  animId = requestAnimationFrame(loop);
+}
+
+/* ----------------------------------------------------------------
+   CONTROLES DE UI
+   ---------------------------------------------------------------- */
+const btnPlay   = document.getElementById('btn-play');
+const btnStep   = document.getElementById('btn-step');
+const btnReset  = document.getElementById('btn-reset');
+const btnRandom = document.getElementById('btn-random');
+const speedSlider = document.getElementById('speed');
+
+// Iniciar / Pausar
+btnPlay.addEventListener('click', () => {
+  running = !running;
+  if (running) {
+    btnPlay.textContent = '⏸ PAUSAR';
+    btnPlay.classList.add('primary');
+    lastTime = performance.now();
+    fpsLastUpdate = lastTime;
+    frameCount = 0;
+    animId = requestAnimationFrame(loop);
+  } else {
+    btnPlay.textContent = '▶ INICIAR';
+    cancelAnimationFrame(animId);
+    document.getElementById('fps-display').textContent = '—';
+  }
+});
+
+// Paso a paso
+btnStep.addEventListener('click', () => {
+  if (running) return; // no en ejecución
+  step();
+  draw();
+});
+
+// Reiniciar
+btnReset.addEventListener('click', () => {
+  running = false;
+  cancelAnimationFrame(animId);
+  btnPlay.textContent = '▶ INICIAR';
+  generation = 0;
+  initGrid();
+  draw();
+  document.getElementById('fps-display').textContent = '—';
+});
+
+// Aleatorio (~30% de células vivas)
+btnRandom.addEventListener('click', () => {
+  for (let i = 0; i < grid.length; i++) {
+    grid[i] = Math.random() < 0.30 ? 1 : 0;
+  }
+  generation = 0;
+  draw();
+});
+
+// Velocidad
+speedSlider.addEventListener('input', () => {
+  speed = parseInt(speedSlider.value);
+});
+
+/* ----------------------------------------------------------------
+   INTERACCIÓN CON EL CANVAS — Pintar células con el ratón
+   ---------------------------------------------------------------- */
+function cellCoords(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const c = Math.floor(x / CSIZE);
+  const r = Math.floor(y / CSIZE);
+  return { r, c };
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  isPainting = true;
+  const { r, c } = cellCoords(e);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    // Si la célula estaba viva, pintamos de muerto; si muerta, de vivo
+    paintValue = grid[idx(r,c)] ? 0 : 1;
+    grid[idx(r,c)] = paintValue;
+    draw();
+  }
+  e.preventDefault();
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (!isPainting) return;
+  const { r, c } = cellCoords(e);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    grid[idx(r,c)] = paintValue;
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseup', () => { isPainting = false; });
+canvas.addEventListener('mouseleave', () => { isPainting = false; });
+
+// Soporte táctil
+canvas.addEventListener('touchstart', (e) => {
+  isPainting = true;
+  const touch = e.touches[0];
+  const { r, c } = cellCoords(touch);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    paintValue = grid[idx(r,c)] ? 0 : 1;
+    grid[idx(r,c)] = paintValue;
+    draw();
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (!isPainting) return;
+  const touch = e.touches[0];
+  const { r, c } = cellCoords(touch);
+  if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+    grid[idx(r,c)] = paintValue;
+    draw();
+  }
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchend', () => { isPainting = false; });
+
+/* ----------------------------------------------------------------
+   PATRONES PREDEFINIDOS
+   ---------------------------------------------------------------- */
+// Cada patrón es un array de [fila_offset, col_offset] relativos al centro
+const PATTERNS = {
+  // Glider — planeador simple
+  glider: [
+    [0,1],[1,2],[2,0],[2,1],[2,2]
+  ],
+
+  // Blinker — oscilador de periodo 2
+  blinker: [
+    [0,-1],[0,0],[0,1]
+  ],
+
+  // Pulsar — oscilador de periodo 3 (patrón más complejo)
+  pulsar: (() => {
+    const cells = [];
+    // Definimos solo un cuadrante y lo replicamos con simetría 4x
+    const arm = [[0,2],[0,3],[0,4],[1,0],[2,0],[3,0],[4,0],[4,2],[4,3],[4,4]];
+    for (const [r,c] of arm) {
+      cells.push([ r, c],[ r,-c],[-r, c],[-r,-c]);
+    }
+    return cells;
+  })(),
+
+  // R-Pentomino — patrón caótico que evoluciona 1103 generaciones
+  rle: [
+    [0,1],[0,2],[1,0],[1,1],[2,1]
+  ],
+
+  // Gosper Glider Gun — primera pistola de gliders conocida
+  gosper: [
+    // Bloque izquierdo
+    [4,0],[4,1],[5,0],[5,1],
+    // Parte izquierda del cañón
+    [4,10],[5,10],[6,10],
+    [3,11],[7,11],
+    [2,12],[8,12],
+    [2,13],[8,13],
+    [5,14],
+    [3,15],[7,15],
+    [4,16],[5,16],[6,16],
+    [5,17],
+    // Parte derecha
+    [2,20],[3,20],[4,20],
+    [2,21],[3,21],[4,21],
+    [1,22],[5,22],
+    [0,24],[1,24],[5,24],[6,24],
+    // Bloque derecho
+    [2,34],[3,34],[2,35],[3,35]
+  ]
+};
+
+// Insertar patrón centrado en el grid
+function placePattern(name) {
+  const cells = PATTERNS[name];
+  if (!cells) return;
+
+  const cr = Math.floor(ROWS / 2);
+  const cc = Math.floor(COLS / 2);
+
+  for (const [dr, dc] of cells) {
+    const r = cr + dr;
+    const c = cc + dc;
+    if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+      grid[idx(r,c)] = 1;
+    }
+  }
+  draw();
+}
+
+// Botones de patrones
+document.querySelectorAll('.pattern-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    placePattern(btn.dataset.pattern);
+  });
+});
+
+/* ----------------------------------------------------------------
+   REDIMENSIONAR
+   ---------------------------------------------------------------- */
+window.addEventListener('resize', () => {
+  const wasRunning = running;
+  if (running) {
+    running = false;
+    cancelAnimationFrame(animId);
+  }
+  computeGrid();
+  initGrid();
+  generation = 0;
+  draw();
+  if (wasRunning) {
+    running = true;
+    lastTime = performance.now();
+    fpsLastUpdate = lastTime;
+    frameCount = 0;
+    animId = requestAnimationFrame(loop);
+  }
+});
+
+/* ----------------------------------------------------------------
+   ARRANQUE INICIAL
+   ---------------------------------------------------------------- */
+computeGrid();
+initGrid();
+
+// Cargamos el Gosper Gun como patrón inicial de bienvenida
+placePattern('gosper');
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Juego de la Vida de Conway</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>Juego de la Vida de Conway</h1>
+        <p class="subtitle">
+          Haz clic en las celdas para activarlas y luego inicia la simulación.
+        </p>
+      </header>
+
+      <section class="controls">
+        <!-- Controles principales de la simulación -->
+        <button id="start-btn">Iniciar</button>
+        <button id="pause-btn" disabled>Pausar</button>
+        <button id="reset-btn">Reiniciar</button>
+
+        <!-- Control de velocidad -->
+        <label class="speed-label" for="speed-range">
+          Velocidad:
+          <span id="speed-display">5</span> FPS
+        </label>
+        <input
+          type="range"
+          id="speed-range"
+          min="1"
+          max="20"
+          value="5"
+        />
+      </section>
+
+      <section class="grid-container">
+        <!-- La cuadrícula se inyecta dinámicamente desde JavaScript -->
+        <div id="grid" class="grid"></div>
+      </section>
+
+      <section class="info">
+        <h2>Reglas del Juego de la Vida</h2>
+        <ul>
+          <li>Una célula <strong>viva</strong> con 2 o 3 vecinas vivas <strong>sobrevive</strong>.</li>
+          <li>Una célula <strong>muerta</strong> con exactamente 3 vecinas vivas <strong>nace</strong>.</li>
+          <li>En cualquier otro caso, la célula muere o permanece muerta.</li>
+        </ul>
+        <p>
+          Puedes modificar el patrón haciendo clic sobre las celdas cuando la
+          simulación está <strong>pausada</strong> o antes de iniciarla.
+        </p>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+  </html>
+
