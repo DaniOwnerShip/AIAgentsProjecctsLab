@@ -2,6 +2,9 @@
 
 Una herramienta de monitoreo de red en tiempo real inspirada en la estética de **The Matrix**. Captura tráfico real de tu tarjeta de red y lo visualiza como una lluvia de código dinámico, detectando eventos clave en el flujo de datos.
 
+![matrix_sniffer](https://github.com/user-attachments/assets/83aeeb44-9e88-4e6b-9f89-a6a583be5494)
+
+
 ## 🚀 Características
 - **Captura Real:** Utiliza Scapy + Npcap para interceptar paquetes (TCP, UDP, DNS, ARP, ICMP).
 - **Modos de Operación:** - `[SCAPY]`: Modo nativo de alta precisión (requiere Npcap).
