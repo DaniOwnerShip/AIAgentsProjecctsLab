@@ -2,6 +2,8 @@
 
 Aplicación de consola que muestra un efecto Matrix en tiempo real a partir de **paquetes reales** de red.
 
+![mcc](https://github.com/user-attachments/assets/f2c42c47-300d-4242-be00-f559a7121b22)
+
 ## Requisitos
 
 - **Windows 10 / 11**.
