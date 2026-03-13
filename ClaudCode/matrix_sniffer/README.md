@@ -2,7 +2,7 @@
 
 Una herramienta de monitoreo de red en tiempo real inspirada en la estética de **The Matrix**. Captura tráfico real de tu tarjeta de red y lo visualiza como una lluvia de código dinámico, detectando eventos clave en el flujo de datos.
 
-
+![claudMatrix](https://github.com/user-attachments/assets/283ddcfb-2d07-4cc6-9d05-6ba87251502d)
 
 ## 🚀 Características
 - **Captura Real:** Utiliza Scapy + Npcap para interceptar paquetes (TCP, UDP, DNS, ARP, ICMP).
