@@ -8,6 +8,8 @@ Nota: App creada en Claud Code, tiene algún error que impide la conexión al pl
 Aplicación SCADA para monitorización y control de línea de producción de sacos.  
 **Stack**: Electron 32 · React 18 · Vite 5 · modbus-serial 8
 
+![Screenshot](slcloud.jpg)
+
 ---
 
 ## Instalación y arranque
