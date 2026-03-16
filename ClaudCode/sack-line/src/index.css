@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap');
+
+:root {
+  --bg-base:       #0a0e14;
+  --bg-panel:      #111822;
+  --bg-card:       #161e2e;
+  --border:        #1f2d42;
+  --border-bright: #2a4060;
+
+  --accent-green:  #00e676;
+  --accent-amber:  #ffab00;
+  --accent-red:    #ff3d57;
+  --accent-blue:   #29b6f6;
+  --accent-cyan:   #00e5ff;
+
+  --text-primary:  #e8f0fe;
+  --text-secondary:#7b8fa6;
+  --text-mono:     #a8d8a8;
+
+  --conveyor-belt: #2a3548;
+  --conveyor-stripe:#1a2535;
+  --motor-body:    #1e3a5f;
+  --sack-fill:     #c8a96e;
+  --sack-shadow:   #8b6f3a;
+  --depot-fill:    #1a3a5c;
+  --depot-stroke:  #29b6f6;
+
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-body: 'Barlow', sans-serif;
+  --font-display: 'Barlow Condensed', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  width: 100%; height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Scrollbar industrial */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+/* Glow utilities */
+.glow-green { filter: drop-shadow(0 0 6px var(--accent-green)); }
+.glow-amber { filter: drop-shadow(0 0 6px var(--accent-amber)); }
+.glow-red   { filter: drop-shadow(0 0 6px var(--accent-red)); }
+.glow-blue  { filter: drop-shadow(0 0 6px var(--accent-blue)); }
+
+/* Scanline overlay */
+.scanlines::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.06) 2px,
+    rgba(0,0,0,0.06) 4px
+  );
+  pointer-events: none;
+}

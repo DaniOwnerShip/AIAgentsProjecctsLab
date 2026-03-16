@@ -1,0 +1,87 @@
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: var(--bg-panel);
+}
+.header:hover { background: #1a2538; }
+
+.statusDot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.statusLabel { font-weight: 600; min-width: 90px; }
+.ipLabel     { color: var(--text-secondary); margin-left: auto; }
+.chevron     { color: var(--text-secondary); font-size: 9px; }
+
+.body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.row label {
+  width: 60px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.row input {
+  flex: 1;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+}
+.row input:focus { border-color: var(--accent-blue); }
+.row input:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.error {
+  color: var(--accent-red);
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+.btn {
+  background: transparent;
+  border: 1px solid var(--btn-color, var(--accent-green));
+  color: var(--btn-color, var(--accent-green));
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: background 0.2s, color 0.2s;
+  margin-top: 4px;
+}
+.btn:hover:not(:disabled) {
+  background: var(--btn-color, var(--accent-green));
+  color: var(--bg-base);
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
