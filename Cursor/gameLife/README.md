@@ -2,6 +2,8 @@
 
 Este proyecto implementa el **Juego de la Vida de Conway** con una interfaz visual en el navegador.
 
+![gl](https://github.com/user-attachments/assets/b96f64ce-bfdd-4ea9-ae75-2e29c37637ae)
+
 ### Características
 
 - **Cuadrícula interactiva**: haz clic en las celdas para activarlas o desactivarlas.
