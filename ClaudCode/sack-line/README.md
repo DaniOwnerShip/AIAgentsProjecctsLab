@@ -1,7 +1,24 @@
+<<<<<<< HEAD
+=======
+Nota: App creada en Claud Code, tiene algún error que impide la conexión al plc que no ha sido revisado. Era simplemente una prueba inicial para probar estructuras, ver la interfaz, y compararlo con Cursor (https://github.com/DaniOwnerShip/SCADATestCursor.git) usando el mismo prompt :
+
+"Quiero hacer una aplicación en Electrón + React o nextjs lo qué consideres mejor. La aplicación tiene que conectar a un PLC vía modbus TCP/IP y en la interfaz de usuario se representará una línea de producción de sacos, que consta de un depósito en un extremo de la cinta transportadora, la cinta transmortadora con un motór en un extremo simulando que mueve la cinta, y encima de esta, los sacos que se van desplazando del extremo de la cinta del depósito hacia el otro extremo. Además habrá un control de marcha, paro, y velocidad de la línea , que serán señales del PLC. los gráficos se realizarán en svg o lo que consideres mejor."
+
+
+>>>>>>> addfde2e419f470cbdbe4532955b64f1d620cf8b
+Nota: App creada en Claud Code, tiene algún error que impide la conexión al plc que no ha sido revisado. Era simplemente una prueba inicial para probar estructuras, ver la interfaz, y compararlo con Cursor (https://github.com/DaniOwnerShip/SCADATestCursor.git) usando el mismo prompt :
+
+"Quiero hacer una aplicación en Electrón + React o nextjs lo qué consideres mejor. La aplicación tiene que conectar a un PLC vía modbus TCP/IP y en la interfaz de usuario se representará una línea de producción de sacos, que consta de un depósito en un extremo de la cinta transportadora, la cinta transmortadora con un motór en un extremo simulando que mueve la cinta, y encima de esta, los sacos que se van desplazando del extremo de la cinta del depósito hacia el otro extremo. Además habrá un control de marcha, paro, y velocidad de la línea , que serán señales del PLC. los gráficos se realizarán en svg o lo que consideres mejor."
+
+UPDATE: Aplicación reparada por OpenCode by promts: Analyze my app at ./sack-line. There is a PLC connection function that fails. | the error persist. when i push the "Conectar" button, the app show me the error "An object could not be cloned"
+
+
 # SackLine Monitor
 
 Aplicación SCADA para monitorización y control de línea de producción de sacos.  
 **Stack**: Electron 32 · React 18 · Vite 5 · modbus-serial 8
+
+![Screenshot](slcloud.jpg)
 
 ---
 
