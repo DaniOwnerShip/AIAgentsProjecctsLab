@@ -4,10 +4,12 @@ Nota: App creada en Claud Code, tiene algún error que impide la conexión al pl
 
 # UPDATES
 
-UPDATE: Aplicación reparada por OpenCode by promts: Analyze my app at ./sack-line. There is a PLC connection function that fails. | the error persist. when i push the "Conectar" button, the app show me the error "An object could not be cloned"
+UPDATE: fix connection
 
-UPDATE: [commit: improved by agent skills] 
-Aplicación mejorada con las skills https://github.com/DaniOwnerShip/AgentsGit.git 
+- Aplicación reparada por OpenCode by promts: Analyze my app at ./sack-line. There is a PLC connection function that fails. | the error persist. when i push the "Conectar" button, the app show me the error "An object could not be cloned"
+
+UPDATE:  improved by agent skills 
+- Aplicación mejorada con las skills https://github.com/DaniOwnerShip/AgentsGit.git 
 
 
 # SackLine Monitor
