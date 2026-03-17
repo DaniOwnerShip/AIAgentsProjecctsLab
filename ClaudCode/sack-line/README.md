@@ -2,9 +2,12 @@ Nota: App creada en Claud Code, tiene algún error que impide la conexión al pl
 
 "Quiero hacer una aplicación en Electrón + React o nextjs lo qué consideres mejor. La aplicación tiene que conectar a un PLC vía modbus TCP/IP y en la interfaz de usuario se representará una línea de producción de sacos, que consta de un depósito en un extremo de la cinta transportadora, la cinta transmortadora con un motór en un extremo simulando que mueve la cinta, y encima de esta, los sacos que se van desplazando del extremo de la cinta del depósito hacia el otro extremo. Además habrá un control de marcha, paro, y velocidad de la línea , que serán señales del PLC. los gráficos se realizarán en svg o lo que consideres mejor."
 
+# UPDATES
+
 UPDATE: Aplicación reparada por OpenCode by promts: Analyze my app at ./sack-line. There is a PLC connection function that fails. | the error persist. when i push the "Conectar" button, the app show me the error "An object could not be cloned"
 
-UPDATE: Aplicación mejorada con las skills https://github.com/DaniOwnerShip/AgentsGit.git [commit: improved by agent skills]
+UPDATE: [commit: improved by agent skills] 
+Aplicación mejorada con las skills https://github.com/DaniOwnerShip/AgentsGit.git 
 
 
 # SackLine Monitor
