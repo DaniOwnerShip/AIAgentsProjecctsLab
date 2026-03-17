@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-const DEFAULT_CONFIG = { host: '192.168.1.10', port: 502, unitId: 1 }
+const DEFAULT_CONFIG = { host: '127.168.1.42', port: 502, unitId: 1 }
 
 // En dev sin Electron, usamos datos simulados
 const isElectron = typeof window !== 'undefined' && !!window.modbus
@@ -22,7 +22,13 @@ export function useModbus() {
     setError(null)
     try {
       if (isElectron) {
-        const res = await window.modbus.connect(cfg)
+        const cleanCfg = {
+          host: String(cfg?.host || '127.168.1.42'),
+          port: Number(cfg?.port || 502),
+          unitId: Number(cfg?.unitId || 1)
+        }
+        console.log('[Renderer] Connecting with config:', cleanCfg)
+        const res = await window.modbus.connect(cleanCfg)
         if (!res.ok) throw new Error(res.error)
         window.modbus.onData(data => setPlcData(data))
         window.modbus.onError(err => setError(err))

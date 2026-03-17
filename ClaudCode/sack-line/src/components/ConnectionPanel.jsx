@@ -22,7 +22,7 @@ export default function ConnectionPanel({ config, setConfig, connected, connecti
           <div className={styles.row}>
             <label>IP PLC</label>
             <input value={config.host} onChange={e => setConfig(c => ({ ...c, host: e.target.value }))}
-              disabled={connected} placeholder="192.168.1.10" />
+              disabled={connected} placeholder="127.168.1.42" />
           </div>
           <div className={styles.row}>
             <label>Puerto</label>

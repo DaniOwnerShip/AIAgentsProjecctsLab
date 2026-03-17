@@ -5,6 +5,13 @@ let mainWindow
 let modbusClient = null
 let pollingInterval = null
 
+let connectionState = {
+  isConnected: false,
+  host: null,
+  port: null,
+  unitId: null
+}
+
 function getModbusSerial() {
   try {
     return require('modbus-serial')
@@ -29,6 +36,13 @@ function createWindow() {
     }
   })
 
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://localhost') || url.startsWith('https://')) {
+      require('electron').shell.openExternal(url)
+    }
+    return { action: 'deny' }
+  })
+
   const isDev = !app.isPackaged
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173')
@@ -43,48 +57,42 @@ app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
 
 // ── IPC: Conectar ─────────────────────────────────────────────────────────
-// Usamos callback en lugar de await para evitar que modbus-serial
-// propague objetos Error no serializables por el canal IPC de Electron.
-ipcMain.handle('modbus:connect', (_event, cfg) => {
-  return new Promise((resolve) => {
-    try {
-      const host   = String(cfg.host   || '127.168.1.42')
-      const port   = Number(cfg.port   || 502)
-      const unitId = Number(cfg.unitId || 1)
+ipcMain.handle('modbus:connect', async (_event, cfg) => {
+  console.log('[Modbus] connect received, cfg:', JSON.stringify(cfg))
+  try {
+    const host = String(cfg?.host || '127.168.1.42')
+    const port = Number(cfg?.port || 502)
+    const unitId = Number(cfg?.unitId || 1)
+    console.log('[Modbus] Parsed params:', { host, port, unitId })
 
-      const ModbusRTU = getModbusSerial()
-      if (!ModbusRTU) {
-        resolve({ ok: false, error: 'modbus-serial no disponible' })
-        return
-      }
-
-      if (modbusClient) {
-        try { modbusClient.close() } catch (_) {}
-        modbusClient = null
-      }
-
-      const client = new ModbusRTU()
-      client.setID(unitId)
-      client.setTimeout(3000)
-
-      // connectTCP acepta callback como tercer argumento
-      client.connectTCP(host, { port }, (err) => {
-        if (err) {
-          const msg = (err && err.message) ? String(err.message) : 'Error de conexión TCP'
-          console.error('[Modbus] connect error:', msg)
-          resolve({ ok: false, error: msg })
-        } else {
-          modbusClient = client
-          console.log('[Modbus] Conectado a', host + ':' + port)
-          resolve({ ok: true })
-        }
-      })
-    } catch (ex) {
-      const msg = (ex && ex.message) ? String(ex.message) : 'Excepción inesperada'
-      console.error('[Modbus] excepción:', msg)
-      resolve({ ok: false, error: msg })
+    const ModbusRTU = getModbusSerial()
+    if (!ModbusRTU) {
+      console.log('[Modbus] modbus-serial not available')
+      return { ok: false, error: 'modbus-serial no disponible' }
     }
-  })
+
+    if (modbusClient) {
+      try { modbusClient.close() } catch (_) {}
+      modbusClient = null
+    }
+
+    const client = new ModbusRTU()
+    client.setID(unitId)
+    client.setTimeout(3000)
+
+    console.log('[Modbus] Attempting TCP connection to', host, port)
+    await client.connectTCP(host, { port })
+    console.log('[Modbus] TCP connected')
+
+    modbusClient = client
+    connectionState = { isConnected: true, host, port, unitId }
+    console.log('[Modbus] Connected successfully, returning ok: true')
+    return { ok: true }
+  } catch (ex) {
+    const msg = (ex && ex.message) ? String(ex.message) : 'Excepción inesperada'
+    console.error('[Modbus] Exception:', msg)
+    return { ok: false, error: msg }
+  }
 })
 
 // ── IPC: Desconectar ──────────────────────────────────────────────────────
@@ -94,6 +102,7 @@ ipcMain.handle('modbus:disconnect', async () => {
     try { modbusClient.close() } catch (_) {}
     modbusClient = null
   }
+  connectionState = { isConnected: false, host: null, port: null, unitId: null }
   return { ok: true }
 })
 
@@ -146,18 +155,22 @@ ipcMain.handle('modbus:writeRegister', async (_event, { address, value }) => {
 
 // ── IPC: Iniciar polling ──────────────────────────────────────────────────
 ipcMain.handle('modbus:startPolling', (_event, { intervalMs }) => {
+  console.log('[Modbus] startPolling received, interval:', intervalMs)
   stopPolling()
   pollingInterval = setInterval(async () => {
-    if (!modbusClient || !modbusClient.isOpen) return
+    if (!connectionState.isConnected || !modbusClient || !modbusClient.isOpen) return
     try {
       const coils = await modbusClient.readCoils(0, 2)
       const regs  = await modbusClient.readHoldingRegisters(0, 1)
-      mainWindow?.webContents.send('modbus:data', {
+      const data = {
         marcha:    !!coils.data[0],
         paro:      !!coils.data[1],
         velocidad: Number(regs.data[0])
-      })
+      }
+      console.log('[Modbus] Sending data:', data)
+      mainWindow?.webContents.send('modbus:data', data)
     } catch (err) {
+      console.log('[Modbus] Polling error:', err.message)
       mainWindow?.webContents.send('modbus:error', String((err && err.message) || err))
     }
   }, Number(intervalMs) || 500)
