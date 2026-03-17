@@ -28,6 +28,7 @@ export function useModbus() {
           unitId: Number(cfg?.unitId || 1)
         }
         console.log('[Renderer] Connecting with config:', cleanCfg)
+        window.modbus.removeAllListeners()
         const res = await window.modbus.connect(cleanCfg)
         if (!res.ok) throw new Error(res.error)
         window.modbus.onData(data => setPlcData(data))

@@ -17,7 +17,7 @@ export default function ConnectionPanel({ config, setConfig, connected, connecti
         <span className={styles.chevron}>{expanded ? '▲' : '▼'}</span>
       </div>
 
-      {expanded && (
+      {expanded ? (
         <div className={styles.body}>
           <div className={styles.row}>
             <label>IP PLC</label>
@@ -44,7 +44,7 @@ export default function ConnectionPanel({ config, setConfig, connected, connecti
             {connecting ? '⟳ Conectando…' : connected ? '⏹ Desconectar' : '⏵ Conectar'}
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

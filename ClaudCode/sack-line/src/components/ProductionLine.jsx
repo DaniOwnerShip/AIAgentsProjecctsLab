@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, memo } from 'react'
 
 const W = 900
 const H = 320
@@ -15,6 +15,35 @@ const SACK_SPACING = BELT_W / NUM_SACKS
 
 // Radios de los tambores/poleas de la cinta
 const PULLEY_R = 16
+
+const SVG_DEFS = memo(() => (
+  <defs>
+    <linearGradient id="beltGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stopColor="#3a4e6a" />
+      <stop offset="50%"  stopColor="#2a3a52" />
+      <stop offset="100%" stopColor="#1a2838" />
+    </linearGradient>
+    <filter id="sackShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.5" />
+    </filter>
+    <linearGradient id="depotGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stopColor="#1e4a7a" />
+      <stop offset="100%" stopColor="#0d1f35" />
+    </linearGradient>
+    <radialGradient id="motorGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%"   stopColor="#2a5080" />
+      <stop offset="100%" stopColor="#0e2040" />
+    </radialGradient>
+    <clipPath id="beltClip">
+      <rect x={BELT_X1} y={BELT_Y - SACK_H - 2} width={BELT_W} height={SACK_H + BELT_H + 4} />
+    </clipPath>
+    <linearGradient id="sackGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stopColor="#d4b077" />
+      <stop offset="60%"  stopColor="#c09050" />
+      <stop offset="100%" stopColor="#8b6530" />
+    </linearGradient>
+  </defs>
+))
 
 export default function ProductionLine({ marcha, velocidad }) {
   const animRef  = useRef(null)
@@ -62,50 +91,16 @@ export default function ProductionLine({ marcha, velocidad }) {
       style={{ display: 'block', overflow: 'visible' }}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <defs>
-        {/* Gradiente cinta transportadora */}
-        <linearGradient id="beltGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#3a4e6a" />
-          <stop offset="50%"  stopColor="#2a3a52" />
-          <stop offset="100%" stopColor="#1a2838" />
-        </linearGradient>
+      <SVG_DEFS />
 
-        {/* Patrón rayas de la cinta */}
+      {/* Dynamic belt stripe pattern */}
+      <defs>
         <pattern id="beltStripe" x="0" y="0" width="32" height={BELT_H} patternUnits="userSpaceOnUse"
           patternTransform={`translate(${offset * 0.8},0)`}>
           <rect width="32" height={BELT_H} fill="url(#beltGrad)" />
           <rect x="0" width="2" height={BELT_H} fill="rgba(0,0,0,0.35)" />
           <rect x="16" width="2" height={BELT_H} fill="rgba(0,0,0,0.20)" />
         </pattern>
-
-        {/* Sombra saco */}
-        <filter id="sackShadow" x="-10%" y="-10%" width="120%" height="130%">
-          <feDropShadow dx="2" dy="3" stdDeviation="3" floodColor="#000" floodOpacity="0.5" />
-        </filter>
-
-        {/* Brillo suave depósito */}
-        <linearGradient id="depotGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stopColor="#1e4a7a" />
-          <stop offset="100%" stopColor="#0d1f35" />
-        </linearGradient>
-
-        {/* Gradiente motor */}
-        <radialGradient id="motorGrad" cx="50%" cy="40%" r="60%">
-          <stop offset="0%"   stopColor="#2a5080" />
-          <stop offset="100%" stopColor="#0e2040" />
-        </radialGradient>
-
-        {/* Clip para sacos en la cinta */}
-        <clipPath id="beltClip">
-          <rect x={BELT_X1} y={BELT_Y - SACK_H - 2} width={BELT_W} height={SACK_H + BELT_H + 4} />
-        </clipPath>
-
-        {/* Gradiente saco */}
-        <linearGradient id="sackGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#d4b077" />
-          <stop offset="60%"  stopColor="#c09050" />
-          <stop offset="100%" stopColor="#8b6530" />
-        </linearGradient>
       </defs>
 
       {/* ── FONDO SUELO ──────────────────────────────────────────────────── */}

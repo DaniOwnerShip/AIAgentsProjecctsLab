@@ -32,8 +32,22 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      webSecurity: true
     }
+  })
+
+  mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    const isDev = !app.isPackaged
+    const csp = isDev
+      ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* ws://localhost:* ws://127.0.0.1:* http://127.0.0.1:*; img-src 'self' data:; font-src 'self';"
+      : "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; font-src 'self';"
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [csp]
+      }
+    })
   })
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -60,10 +74,22 @@ app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) creat
 ipcMain.handle('modbus:connect', async (_event, cfg) => {
   console.log('[Modbus] connect received, cfg:', JSON.stringify(cfg))
   try {
+    if (!cfg || typeof cfg !== 'object') {
+      return { ok: false, error: 'Config inválida' }
+    }
     const host = String(cfg?.host || '127.168.1.42')
     const port = Number(cfg?.port || 502)
     const unitId = Number(cfg?.unitId || 1)
-    console.log('[Modbus] Parsed params:', { host, port, unitId })
+
+    if (!host || typeof host !== 'string' || host.length === 0) {
+      return { ok: false, error: 'Host inválido' }
+    }
+    if (isNaN(port) || port < 1 || port > 65535) {
+      return { ok: false, error: 'Puerto inválido' }
+    }
+    if (isNaN(unitId) || unitId < 1 || unitId > 255) {
+      return { ok: false, error: 'Unit ID inválido' }
+    }
 
     const ModbusRTU = getModbusSerial()
     if (!ModbusRTU) {
@@ -114,6 +140,9 @@ ipcMain.handle('modbus:read', async () => {
   try {
     const coils = await modbusClient.readCoils(0, 2)
     const regs  = await modbusClient.readHoldingRegisters(0, 1)
+    if (!coils || !regs || !coils.data || !regs.data) {
+      return { ok: false, error: 'Datos inválidos del dispositivo' }
+    }
     return {
       ok: true,
       data: {
@@ -132,6 +161,12 @@ ipcMain.handle('modbus:writeCoil', async (_event, { address, value }) => {
   if (!modbusClient || !modbusClient.isOpen) {
     return { ok: false, error: 'No conectado' }
   }
+  if (typeof address !== 'number' || isNaN(address) || address < 0) {
+    return { ok: false, error: 'Dirección inválida' }
+  }
+  if (typeof value !== 'boolean' && typeof value !== 'number') {
+    return { ok: false, error: 'Valor inválido' }
+  }
   try {
     await modbusClient.writeCoil(Number(address), !!value)
     return { ok: true }
@@ -145,6 +180,12 @@ ipcMain.handle('modbus:writeRegister', async (_event, { address, value }) => {
   if (!modbusClient || !modbusClient.isOpen) {
     return { ok: false, error: 'No conectado' }
   }
+  if (typeof address !== 'number' || isNaN(address) || address < 0) {
+    return { ok: false, error: 'Dirección inválida' }
+  }
+  if (typeof value !== 'number' || isNaN(value)) {
+    return { ok: false, error: 'Valor inválido' }
+  }
   try {
     await modbusClient.writeRegister(Number(address), Number(value))
     return { ok: true }
@@ -156,9 +197,17 @@ ipcMain.handle('modbus:writeRegister', async (_event, { address, value }) => {
 // ── IPC: Iniciar polling ──────────────────────────────────────────────────
 ipcMain.handle('modbus:startPolling', (_event, { intervalMs }) => {
   console.log('[Modbus] startPolling received, interval:', intervalMs)
+  const interval = Number(intervalMs) || 500
+  if (isNaN(interval) || interval < 100) {
+    return { ok: false, error: 'Intervalo mínimo es 100ms' }
+  }
   stopPolling()
   pollingInterval = setInterval(async () => {
     if (!connectionState.isConnected || !modbusClient || !modbusClient.isOpen) return
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      stopPolling()
+      return
+    }
     try {
       const coils = await modbusClient.readCoils(0, 2)
       const regs  = await modbusClient.readHoldingRegisters(0, 1)
@@ -173,7 +222,7 @@ ipcMain.handle('modbus:startPolling', (_event, { intervalMs }) => {
       console.log('[Modbus] Polling error:', err.message)
       mainWindow?.webContents.send('modbus:error', String((err && err.message) || err))
     }
-  }, Number(intervalMs) || 500)
+  }, interval)
   return { ok: true }
 })
 
